@@ -22,7 +22,7 @@ export default function AltioraImportSite() {
   const formRef = useRef(null);
 
   const GOOGLE_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbwJt7lu1vWUvkJVjPewGmswbGObGLS-Q9wICoFCLFiCx7Bm71axej7gX-OUNYo7hmQ/exec";
+    "https://script.google.com/macros/s/AKfycbyo8cRGC1Qf3S95wX1WmG3KBlp3sSr6dY97mQAdNe5WVTrMofF49Ym-fBzJKaMfLalt/exec";
 
   const t = translations[lang];
 

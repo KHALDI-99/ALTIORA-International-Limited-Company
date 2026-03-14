@@ -22,25 +22,27 @@ export default function AltioraImportSite() {
   const formRef = useRef(null);
 
   const GOOGLE_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbyo8cRGC1Qf3S95wX1WmG3KBlp3sSr6dY97mQAdNe5WVTrMofF49Ym-fBzJKaMfLalt/exec";
+    "https://script.google.com/macros/s/AKfycbxLf0G59NuN-MBTsk6H3XWOusJr_yQhbMuTjZdte9jBlEEzRdD9lqw_Mn5wWZ1DUefsVQ/exec";
 
   const t = translations[lang];
 
-  function getFieldValue(form, name) {
+  function getFieldValue(name) {
+    const form = formRef.current;
+    if (!form) return "";
     const field = form.elements.namedItem(name);
     return field ? field.value.trim() : "";
   }
 
-  function validateForm(form) {
+  function validateForm() {
     const newErrors = {};
 
-    const fullName = getFieldValue(form, "fullName");
-    const email = getFieldValue(form, "email");
-    const country = getFieldValue(form, "country");
-    const product = getFieldValue(form, "product");
-    const quantity = getFieldValue(form, "quantity");
-    const budget = getFieldValue(form, "budget");
-    const message = getFieldValue(form, "message");
+    const fullName = getFieldValue("fullName");
+    const email = getFieldValue("email");
+    const country = getFieldValue("country");
+    const product = getFieldValue("product");
+    const quantity = getFieldValue("quantity");
+    const budget = getFieldValue("budget");
+    const message = getFieldValue("message");
 
     if (!fullName) {
       newErrors.fullName =
@@ -109,11 +111,11 @@ export default function AltioraImportSite() {
     return newErrors;
   }
 
-  async function handleSubmit() {
+  function handleSubmit() {
     const form = formRef.current;
     if (!form) return;
 
-    const validationErrors = validateForm(form);
+    const validationErrors = validateForm();
     setErrors(validationErrors);
     setFormStatus("");
 
@@ -123,41 +125,26 @@ export default function AltioraImportSite() {
 
     setIsSubmitting(true);
 
-    const params = new URLSearchParams({
-      fullName: getFieldValue(form, "fullName"),
-      company: getFieldValue(form, "company"),
-      email: getFieldValue(form, "email"),
-      country: getFieldValue(form, "country"),
-      product: getFieldValue(form, "product"),
-      quantity: getFieldValue(form, "quantity"),
-      budget: getFieldValue(form, "budget"),
-      message: getFieldValue(form, "message"),
-    });
-
     try {
-      const requestUrl = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+      form.submit();
 
-      await fetch(requestUrl, {
-        method: "GET",
-        mode: "no-cors",
-        cache: "no-store",
-      });
-
-      form.reset();
-      setErrors({});
-      setFormStatus(
-        lang === "en"
-          ? "Your request has been sent successfully. We will contact you soon."
-          : "Votre demande a bien été envoyée. Nous allons vous recontacter rapidement."
-      );
+      setTimeout(() => {
+        form.reset();
+        setErrors({});
+        setIsSubmitting(false);
+        setFormStatus(
+          lang === "en"
+            ? "Your request has been sent successfully. We will contact you soon."
+            : "Votre demande a bien été envoyée. Nous allons vous recontacter rapidement."
+        );
+      }, 800);
     } catch (error) {
+      setIsSubmitting(false);
       setFormStatus(
         lang === "en"
           ? "An error occurred while sending the form."
           : "Une erreur est survenue lors de l’envoi du formulaire."
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -192,6 +179,8 @@ export default function AltioraImportSite() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f6] text-[#11254f]">
+      <iframe name="hidden_iframe" style={{ display: "none" }} title="hidden_iframe" />
+
       <header className="sticky top-0 z-50 border-b border-[#d6c39a]/25 bg-[#f8f8f6]/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <a href="#top" className="flex min-w-0 items-center gap-3">
@@ -207,34 +196,19 @@ export default function AltioraImportSite() {
           </a>
 
           <nav className="hidden items-center gap-6 xl:flex">
-            <a
-              href="#services"
-              className="text-sm text-[#4a5d82] transition hover:text-[#11254f]"
-            >
+            <a href="#services" className="text-sm text-[#4a5d82] transition hover:text-[#11254f]">
               {t.nav.services}
             </a>
-            <a
-              href="#categories"
-              className="text-sm text-[#4a5d82] transition hover:text-[#11254f]"
-            >
+            <a href="#categories" className="text-sm text-[#4a5d82] transition hover:text-[#11254f]">
               {t.nav.products}
             </a>
-            <a
-              href="#examples"
-              className="text-sm text-[#4a5d82] transition hover:text-[#11254f]"
-            >
+            <a href="#examples" className="text-sm text-[#4a5d82] transition hover:text-[#11254f]">
               {t.nav.examples}
             </a>
-            <a
-              href="#advantages"
-              className="text-sm text-[#4a5d82] transition hover:text-[#11254f]"
-            >
+            <a href="#advantages" className="text-sm text-[#4a5d82] transition hover:text-[#11254f]">
               {t.nav.why}
             </a>
-            <a
-              href="#process"
-              className="text-sm text-[#4a5d82] transition hover:text-[#11254f]"
-            >
+            <a href="#process" className="text-sm text-[#4a5d82] transition hover:text-[#11254f]">
               {t.nav.process}
             </a>
           </nav>
@@ -270,13 +244,8 @@ export default function AltioraImportSite() {
               <span className="mt-2 block text-[#b9862d]">{t.hero.highlight}</span>
             </h1>
 
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-[#4a5d82]">
-              {t.hero.text}
-            </p>
-
-            <p className="mt-4 max-w-2xl text-base leading-7 text-[#60708f]">
-              {t.hero.subtext}
-            </p>
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-[#4a5d82]">{t.hero.text}</p>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[#60708f]">{t.hero.subtext}</p>
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <a
@@ -307,11 +276,7 @@ export default function AltioraImportSite() {
             </div>
           </motion.div>
 
-          <motion.div
-            {...fadeUp}
-            transition={{ duration: 0.65 }}
-            className="relative flex items-center justify-center"
-          >
+          <motion.div {...fadeUp} transition={{ duration: 0.65 }} className="relative flex items-center justify-center">
             <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-[#d6c39a]/30 blur-3xl" />
             <div className="absolute -bottom-10 left-0 h-44 w-44 rounded-full bg-[#11254f]/10 blur-3xl" />
 
@@ -346,11 +311,7 @@ export default function AltioraImportSite() {
         </div>
       </section>
 
-      <motion.section
-        {...fadeUp}
-        id="services"
-        className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
-      >
+      <motion.section {...fadeUp} id="services" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#b9862d]">
             {t.services.eyebrow}
@@ -391,12 +352,8 @@ export default function AltioraImportSite() {
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#11254f] md:text-4xl">
                 {t.products.title}
               </h2>
-              <p className="mt-5 max-w-3xl text-lg leading-8 text-[#4a5d82]">
-                {t.products.text}
-              </p>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-[#60708f]">
-                {t.products.subtext}
-              </p>
+              <p className="mt-5 max-w-3xl text-lg leading-8 text-[#4a5d82]">{t.products.text}</p>
+              <p className="mt-4 max-w-3xl text-base leading-7 text-[#60708f]">{t.products.subtext}</p>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-2">
                 {categories.map((category) => (
@@ -421,10 +378,7 @@ export default function AltioraImportSite() {
 
               <div className="mt-8 space-y-5">
                 {t.products.sidePoints.map((item) => (
-                  <div
-                    key={item.title}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5"
-                  >
+                  <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-5">
                     <p className="font-semibold text-white">{item.title}</p>
                     <p className="mt-2 leading-7 text-slate-300">{item.text}</p>
                   </div>
@@ -444,18 +398,12 @@ export default function AltioraImportSite() {
             <h2 className="mt-4 max-w-2xl text-3xl font-semibold text-[#11254f] md:text-4xl">
               {t.examples.title}
             </h2>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-[#4a5d82]">
-              {t.examples.text}
-            </p>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-[#4a5d82]">{t.examples.text}</p>
 
             <div className="mt-8 rounded-[28px] border border-[#e8dcc0] bg-[linear-gradient(135deg,#0f234c_0%,#17366d_48%,#c9922e_100%)] p-7 text-white shadow-[0_20px_50px_rgba(17,37,79,0.14)]">
               <p className="text-sm uppercase tracking-[0.22em] text-white/70">Altiora</p>
-              <p className="mt-3 text-2xl font-semibold leading-tight">
-                {t.examples.cardTitle}
-              </p>
-              <p className="mt-3 text-sm leading-7 text-white/80">
-                {t.examples.cardText}
-              </p>
+              <p className="mt-3 text-2xl font-semibold leading-tight">{t.examples.cardTitle}</p>
+              <p className="mt-3 text-sm leading-7 text-white/80">{t.examples.cardText}</p>
             </div>
           </motion.div>
 
@@ -515,11 +463,7 @@ export default function AltioraImportSite() {
         </div>
       </section>
 
-      <motion.section
-        {...fadeUp}
-        id="process"
-        className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
-      >
+      <motion.section {...fadeUp} id="process" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#b9862d]">
             {t.process.eyebrow}
@@ -536,9 +480,7 @@ export default function AltioraImportSite() {
               whileHover={{ y: -6 }}
               className="rounded-[30px] border border-[#e8dcc0] bg-white p-8 shadow-[0_12px_35px_rgba(17,37,79,0.05)]"
             >
-              <p className="text-sm font-semibold tracking-[0.28em] text-[#b9862d]">
-                {item.step}
-              </p>
+              <p className="text-sm font-semibold tracking-[0.28em] text-[#b9862d]">{item.step}</p>
               <h3 className="mt-4 text-xl font-semibold text-[#11254f]">{item.title}</h3>
               <p className="mt-4 leading-7 text-[#60708f]">{item.text}</p>
             </motion.div>
@@ -557,9 +499,7 @@ export default function AltioraImportSite() {
                 {t.commitment.title}
                 <span className="block text-[#d6c39a]">{t.commitment.highlight}</span>
               </h2>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-                {t.commitment.text}
-              </p>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">{t.commitment.text}</p>
             </motion.div>
 
             <motion.div
@@ -592,21 +532,15 @@ export default function AltioraImportSite() {
 
             <div className="mt-8 space-y-4 text-[#60708f]">
               <p>
-                <span className="font-semibold text-[#11254f]">
-                  {t.contact.labels.destinations}
-                </span>{" "}
+                <span className="font-semibold text-[#11254f]">{t.contact.labels.destinations}</span>{" "}
                 {t.contact.values.destinations}
               </p>
               <p>
-                <span className="font-semibold text-[#11254f]">
-                  {t.contact.labels.clients}
-                </span>{" "}
+                <span className="font-semibold text-[#11254f]">{t.contact.labels.clients}</span>{" "}
                 {t.contact.values.clients}
               </p>
               <p>
-                <span className="font-semibold text-[#11254f]">
-                  {t.contact.labels.scope}
-                </span>{" "}
+                <span className="font-semibold text-[#11254f]">{t.contact.labels.scope}</span>{" "}
                 {t.contact.values.scope}
               </p>
             </div>
@@ -623,6 +557,9 @@ export default function AltioraImportSite() {
           >
             <form
               ref={formRef}
+              action={GOOGLE_SCRIPT_URL}
+              method="POST"
+              target="hidden_iframe"
               className="grid gap-5"
               onSubmit={(e) => e.preventDefault()}
               noValidate
@@ -633,15 +570,11 @@ export default function AltioraImportSite() {
                     type="text"
                     name="fullName"
                     className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
-                      errors.fullName
-                        ? "border-red-500"
-                        : "border-[#d8dfe9] focus:border-[#b9862d]"
+                      errors.fullName ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
                     }`}
                     placeholder={t.contact.form.name}
                   />
-                  {errors.fullName && (
-                    <p className="mt-2 text-sm text-red-600">{errors.fullName}</p>
-                  )}
+                  {errors.fullName && <p className="mt-2 text-sm text-red-600">{errors.fullName}</p>}
                 </div>
 
                 <div>
@@ -660,15 +593,11 @@ export default function AltioraImportSite() {
                     type="email"
                     name="email"
                     className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
-                      errors.email
-                        ? "border-red-500"
-                        : "border-[#d8dfe9] focus:border-[#b9862d]"
+                      errors.email ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
                     }`}
                     placeholder={t.contact.form.email}
                   />
-                  {errors.email && (
-                    <p className="mt-2 text-sm text-red-600">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
                 </div>
 
                 <div>
@@ -676,15 +605,11 @@ export default function AltioraImportSite() {
                     type="text"
                     name="country"
                     className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
-                      errors.country
-                        ? "border-red-500"
-                        : "border-[#d8dfe9] focus:border-[#b9862d]"
+                      errors.country ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
                     }`}
                     placeholder={t.contact.form.country}
                   />
-                  {errors.country && (
-                    <p className="mt-2 text-sm text-red-600">{errors.country}</p>
-                  )}
+                  {errors.country && <p className="mt-2 text-sm text-red-600">{errors.country}</p>}
                 </div>
               </div>
 
@@ -693,15 +618,11 @@ export default function AltioraImportSite() {
                   type="text"
                   name="product"
                   className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
-                    errors.product
-                      ? "border-red-500"
-                      : "border-[#d8dfe9] focus:border-[#b9862d]"
+                    errors.product ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
                   }`}
                   placeholder={t.contact.form.product}
                 />
-                {errors.product && (
-                  <p className="mt-2 text-sm text-red-600">{errors.product}</p>
-                )}
+                {errors.product && <p className="mt-2 text-sm text-red-600">{errors.product}</p>}
               </div>
 
               <div className="grid gap-5 md:grid-cols-2">
@@ -711,15 +632,11 @@ export default function AltioraImportSite() {
                     name="quantity"
                     inputMode="numeric"
                     className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
-                      errors.quantity
-                        ? "border-red-500"
-                        : "border-[#d8dfe9] focus:border-[#b9862d]"
+                      errors.quantity ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
                     }`}
                     placeholder={t.contact.form.quantity}
                   />
-                  {errors.quantity && (
-                    <p className="mt-2 text-sm text-red-600">{errors.quantity}</p>
-                  )}
+                  {errors.quantity && <p className="mt-2 text-sm text-red-600">{errors.quantity}</p>}
                 </div>
 
                 <div>
@@ -728,15 +645,11 @@ export default function AltioraImportSite() {
                     name="budget"
                     inputMode="decimal"
                     className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
-                      errors.budget
-                        ? "border-red-500"
-                        : "border-[#d8dfe9] focus:border-[#b9862d]"
+                      errors.budget ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
                     }`}
                     placeholder={t.contact.form.budget}
                   />
-                  {errors.budget && (
-                    <p className="mt-2 text-sm text-red-600">{errors.budget}</p>
-                  )}
+                  {errors.budget && <p className="mt-2 text-sm text-red-600">{errors.budget}</p>}
                 </div>
               </div>
 
@@ -744,15 +657,11 @@ export default function AltioraImportSite() {
                 <textarea
                   name="message"
                   className={`min-h-[160px] w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
-                    errors.message
-                      ? "border-red-500"
-                      : "border-[#d8dfe9] focus:border-[#b9862d]"
+                    errors.message ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
                   }`}
                   placeholder={t.contact.form.message}
                 />
-                {errors.message && (
-                  <p className="mt-2 text-sm text-red-600">{errors.message}</p>
-                )}
+                {errors.message && <p className="mt-2 text-sm text-red-600">{errors.message}</p>}
               </div>
 
               <button
@@ -761,11 +670,7 @@ export default function AltioraImportSite() {
                 disabled={isSubmitting}
                 className="rounded-full bg-[#11254f] px-6 py-4 text-sm font-medium text-white shadow-[0_14px_36px_rgba(17,37,79,0.16)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isSubmitting
-                  ? lang === "en"
-                    ? "Sending..."
-                    : "Envoi..."
-                  : t.contact.form.send}
+                {isSubmitting ? (lang === "en" ? "Sending..." : "Envoi...") : t.contact.form.send}
               </button>
 
               {formStatus && (
@@ -798,9 +703,7 @@ export default function AltioraImportSite() {
                   </p>
                 </div>
               </div>
-              <p className="mt-5 max-w-sm text-sm leading-7 text-[#60708f]">
-                {t.footer.description}
-              </p>
+              <p className="mt-5 max-w-sm text-sm leading-7 text-[#60708f]">{t.footer.description}</p>
             </div>
 
             <div>
@@ -839,8 +742,7 @@ export default function AltioraImportSite() {
 
           <div className="flex flex-col gap-4 border-t border-transparent pt-6 text-sm text-[#60708f] md:flex-row md:items-center md:justify-between">
             <p>
-              © {new Date().getFullYear()} Altiora International Limited Company.{" "}
-              {t.footer.rights}
+              © {new Date().getFullYear()} Altiora International Limited Company. {t.footer.rights}
             </p>
             <p>{t.footer.bottomLine}</p>
           </div>
@@ -922,13 +824,7 @@ function AltioraLogo({ className = "h-12 w-12" }) {
 
 const translations = {
   en: {
-    nav: {
-      services: "Services",
-      products: "Products",
-      examples: "Examples",
-      why: "Why Altiora",
-      process: "Process",
-    },
+    nav: { services: "Services", products: "Products", examples: "Examples", why: "Why Altiora", process: "Process" },
     cta: "Request sourcing",
     hero: {
       badge: "Importing from China",
@@ -938,37 +834,19 @@ const translations = {
       subtext: "Thanks to our operational presence in China and our partner supplier network, we can respond to a very broad range of product needs, from retail to wholesale, with a clear, premium and solution-oriented approach.",
       button: "Request a sourcing study",
       secondaryButton: "See how it works",
-      stats: [
-        ["On the ground", "Operational presence in China"],
-        ["All client profiles", "Businesses and individuals"],
-        ["International", "Europe, Africa, America"],
-      ],
+      stats: [["On the ground", "Operational presence in China"], ["All client profiles", "Businesses and individuals"], ["International", "Europe, Africa, America"]],
       cardEyebrow: "Complete import solution",
       cardTitle: "A single point of contact for virtually any serious product request",
-      cardItems: [
-        ["For whom?", "Businesses, resellers, individuals"],
-        ["Volumes", "Single units, lots, wholesale"],
-        ["Products", "Consumer, professional, specific"],
-        ["Regions", "Europe, Africa, America"],
-      ],
+      cardItems: [["For whom?", "Businesses, resellers, individuals"], ["Volumes", "Single units, lots, wholesale"], ["Products", "Consumer, professional, specific"], ["Regions", "Europe, Africa, America"]],
     },
     services: {
       eyebrow: "What we provide",
       title: "A sourcing and import solution designed to build trust and convert faster",
       text: "Our role is to simplify access to products sourced in China by offering a clearer, more fluid and more reassuring commercial framework, from first request to shipment.",
       items: [
-        {
-          title: "International sourcing from China",
-          text: "We identify, through our partner suppliers, product solutions aligned with your need, your volume and your destination market.",
-        },
-        {
-          title: "Retail or wholesale orders",
-          text: "We support both individuals and businesses for single purchases, recurring orders and larger procurement volumes.",
-        },
-        {
-          title: "International delivery",
-          text: "We arrange shipment to the requested address in Europe, Africa or America depending on the product type and logistics method selected.",
-        },
+        { title: "International sourcing from China", text: "We identify, through our partner suppliers, product solutions aligned with your need, your volume and your destination market." },
+        { title: "Retail or wholesale orders", text: "We support both individuals and businesses for single purchases, recurring orders and larger procurement volumes." },
+        { title: "International delivery", text: "We arrange shipment to the requested address in Europe, Africa or America depending on the product type and logistics method selected." },
       ],
     },
     products: {
@@ -976,30 +854,12 @@ const translations = {
       title: "We handle a genuinely broad range of product requests",
       text: "Electronics, home, furniture, appliances, equipment, specialized items, retail purchases, wholesale orders or more specific sourcing requests: our positioning is to respond to virtually any serious and clearly formulated need.",
       subtext: "Some categories may naturally be subject to specific transport, customs or regulatory conditions depending on the destination country. In such cases, the request is structured according to practical feasibility.",
-      items: [
-        "Electronics & accessories",
-        "Home, furniture & bedding",
-        "Appliances",
-        "Professional equipment",
-        "On-demand products",
-        "General or specialized goods",
-        "Commercial lots, pallets & bulk volumes",
-        "Vehicles and specific products subject to regulatory feasibility",
-      ],
+      items: ["Electronics & accessories", "Home, furniture & bedding", "Appliances", "Professional equipment", "On-demand products", "General or specialized goods", "Commercial lots, pallets & bulk volumes", "Vehicles and specific products subject to regulatory feasibility"],
       sideTitle: "A more credible and reassuring approach",
       sidePoints: [
-        {
-          title: "Partner supplier network",
-          text: "We work with sourcing and supply partners to identify relevant options according to the request submitted.",
-        },
-        {
-          title: "Structured request management",
-          text: "Each need is reviewed based on product type, volume, destination and possible logistics or regulatory constraints.",
-        },
-        {
-          title: "International execution",
-          text: "We support requests intended for Europe, Africa and America with a solution-first and feasibility-based approach.",
-        },
+        { title: "Partner supplier network", text: "We work with sourcing and supply partners to identify relevant options according to the request submitted." },
+        { title: "Structured request management", text: "Each need is reviewed based on product type, volume, destination and possible logistics or regulatory constraints." },
+        { title: "International execution", text: "We support requests intended for Europe, Africa and America with a solution-first and feasibility-based approach." },
       ],
     },
     examples: {
@@ -1009,22 +869,10 @@ const translations = {
       cardTitle: "A premium sourcing model built for broad product demand.",
       cardText: "The objective is simple: help clients buy faster, with less friction, and with a clearer sourcing path from China.",
       cards: [
-        {
-          title: "Consumer electronics",
-          text: "Phones, accessories, smart devices, audio products, lighting, small electronics and related items.",
-        },
-        {
-          title: "Home & furniture",
-          text: "Beds, mattresses, tables, chairs, storage solutions, décor items and other home-related products.",
-        },
-        {
-          title: "Appliances & equipment",
-          text: "Kitchen appliances, cleaning devices, home equipment and selected professional-use products.",
-        },
-        {
-          title: "Custom business orders",
-          text: "Bulk lots, repeat orders, tailored sourcing requests and more specific product searches depending on feasibility.",
-        },
+        { title: "Consumer electronics", text: "Phones, accessories, smart devices, audio products, lighting, small electronics and related items." },
+        { title: "Home & furniture", text: "Beds, mattresses, tables, chairs, storage solutions, décor items and other home-related products." },
+        { title: "Appliances & equipment", text: "Kitchen appliances, cleaning devices, home equipment and selected professional-use products." },
+        { title: "Custom business orders", text: "Bulk lots, repeat orders, tailored sourcing requests and more specific product searches depending on feasibility." },
       ],
     },
     trust: {
@@ -1044,26 +892,10 @@ const translations = {
       eyebrow: "Process",
       title: "A simple, professional and readable process",
       steps: [
-        {
-          step: "01",
-          title: "You define your need",
-          text: "Product, quantity, destination country, quality level and target budget.",
-        },
-        {
-          step: "02",
-          title: "We activate our network",
-          text: "From China, we consult our partners to identify the most coherent option in price, availability and shipping conditions.",
-        },
-        {
-          step: "03",
-          title: "We structure the solution",
-          text: "We organize the order, shipment terms and useful information before final validation.",
-        },
-        {
-          step: "04",
-          title: "We arrange delivery",
-          text: "Your order is shipped to the requested address according to the applicable conditions for the product and destination country.",
-        },
+        { step: "01", title: "You define your need", text: "Product, quantity, destination country, quality level and target budget." },
+        { step: "02", title: "We activate our network", text: "From China, we consult our partners to identify the most coherent option in price, availability and shipping conditions." },
+        { step: "03", title: "We structure the solution", text: "We organize the order, shipment terms and useful information before final validation." },
+        { step: "04", title: "We arrange delivery", text: "Your order is shipped to the requested address according to the applicable conditions for the product and destination country." },
       ],
     },
     commitment: {
@@ -1071,27 +903,14 @@ const translations = {
       title: "You express the need.",
       highlight: "We structure a coherent sourcing solution.",
       text: "We intervene to source, coordinate and arrange delivery of products sourced in China with a commercial approach that is clearer, more premium and adapted to your request.",
-      points: [
-        "Product search based on your brief",
-        "Ability to answer broad and diverse requests",
-        "Retail, lot or wholesale ordering",
-        "Delivery to your chosen address subject to logistics feasibility",
-      ],
+      points: ["Product search based on your brief", "Ability to answer broad and diverse requests", "Retail, lot or wholesale ordering", "Delivery to your chosen address subject to logistics feasibility"],
     },
     contact: {
       eyebrow: "Contact",
       title: "Describe your need and we will study the most suitable solution",
       text: "Tell us the product you are looking for, the volume, the destination country and any useful information. We can then structure your request more precisely.",
-      labels: {
-        destinations: "Destinations:",
-        clients: "Clients:",
-        scope: "Scope:",
-      },
-      values: {
-        destinations: "Europe, Africa, America",
-        clients: "businesses, resellers, individuals",
-        scope: "retail, lot, wholesale and specific product sourcing",
-      },
+      labels: { destinations: "Destinations:", clients: "Clients:", scope: "Scope:" },
+      values: { destinations: "Europe, Africa, America", clients: "businesses, resellers, individuals", scope: "retail, lot, wholesale and specific product sourcing" },
       noticeTitle: "Important information",
       noticeText: "Some product categories, import flows and destination countries may require additional compliance, transport, customs or authorization checks. Every request is therefore assessed according to actual feasibility.",
       form: {
@@ -1109,38 +928,17 @@ const translations = {
     footer: {
       description: "Company focused on sourcing, procurement and purchase coordination from China for business and private clients internationally.",
       activities: "Activities",
-      activityItems: [
-        "Product sourcing",
-        "Procurement via partners",
-        "Retail, lot and wholesale purchasing",
-        "International delivery",
-      ],
+      activityItems: ["Product sourcing", "Procurement via partners", "Retail, lot and wholesale purchasing", "International delivery"],
       regions: "Regions served",
-      regionItems: [
-        "Europe",
-        "Africa",
-        "America",
-        "Case-by-case review depending on destination",
-      ],
+      regionItems: ["Europe", "Africa", "America", "Case-by-case review depending on destination"],
       info: "Corporate information",
-      infoItems: [
-        "Professional sourcing approach",
-        "Partner supplier network",
-        "International coverage",
-        "Commercial contact",
-      ],
+      infoItems: ["Professional sourcing approach", "Partner supplier network", "International coverage", "Commercial contact"],
       rights: "All rights reserved.",
       bottomLine: "Importing from China • Sourcing • Procurement • International delivery",
     },
   },
   fr: {
-    nav: {
-      services: "Services",
-      products: "Produits",
-      examples: "Exemples",
-      why: "Pourquoi Altiora",
-      process: "Process",
-    },
+    nav: { services: "Services", products: "Produits", examples: "Exemples", why: "Pourquoi Altiora", process: "Process" },
     cta: "Demander un sourcing",
     hero: {
       badge: "Importation depuis la Chine",
@@ -1150,37 +948,19 @@ const translations = {
       subtext: "Grâce à notre présence opérationnelle en Chine et à notre réseau de fournisseurs partenaires, nous pouvons répondre à une très large variété de besoins produits, en détail comme en gros, avec une approche claire, premium et orientée solution.",
       button: "Recevoir une étude de besoin",
       secondaryButton: "Voir le fonctionnement",
-      stats: [
-        ["Sur place", "Présence opérationnelle en Chine"],
-        ["Tous profils", "Entreprises et particuliers"],
-        ["International", "Europe, Afrique, Amérique"],
-      ],
+      stats: [["Sur place", "Présence opérationnelle en Chine"], ["Tous profils", "Entreprises et particuliers"], ["International", "Europe, Afrique, Amérique"]],
       cardEyebrow: "Solution import complète",
       cardTitle: "Un interlocuteur unique pour pratiquement tout type de demande produit sérieuse",
-      cardItems: [
-        ["Pour qui ?", "Entreprises, revendeurs, particuliers"],
-        ["Volumes", "À l’unité, en lot, en gros"],
-        ["Produits", "Grand public, professionnels, spécifiques"],
-        ["Zones", "Europe, Afrique, Amérique"],
-      ],
+      cardItems: [["Pour qui ?", "Entreprises, revendeurs, particuliers"], ["Volumes", "À l’unité, en lot, en gros"], ["Produits", "Grand public, professionnels, spécifiques"], ["Zones", "Europe, Afrique, Amérique"]],
     },
     services: {
       eyebrow: "Ce que nous apportons",
       title: "Une solution de sourcing et d’import pensée pour inspirer confiance et convertir plus vite",
       text: "Notre rôle est de simplifier l’accès aux produits sourcés en Chine en vous proposant un cadre commercial plus lisible, plus fluide et plus rassurant, du premier échange jusqu’à l’expédition.",
       items: [
-        {
-          title: "Sourcing international depuis la Chine",
-          text: "Nous identifions, via nos fournisseurs partenaires, les solutions produits les plus adaptées à votre besoin, à votre volume et à votre marché de destination.",
-        },
-        {
-          title: "Commande en détail ou en gros",
-          text: "Nous accompagnons aussi bien les particuliers que les entreprises, pour des achats unitaires, des commandes récurrentes ou des volumes plus importants.",
-        },
-        {
-          title: "Livraison à l’international",
-          text: "Nous organisons l’acheminement jusqu’à l’adresse indiquée en Europe, en Afrique ou en Amérique, selon la nature du produit et le mode logistique retenu.",
-        },
+        { title: "Sourcing international depuis la Chine", text: "Nous identifions, via nos fournisseurs partenaires, les solutions produits les plus adaptées à votre besoin, à votre volume et à votre marché de destination." },
+        { title: "Commande en détail ou en gros", text: "Nous accompagnons aussi bien les particuliers que les entreprises, pour des achats unitaires, des commandes récurrentes ou des volumes plus importants." },
+        { title: "Livraison à l’international", text: "Nous organisons l’acheminement jusqu’à l’adresse indiquée en Europe, en Afrique ou en Amérique, selon la nature du produit et le mode logistique retenu." },
       ],
     },
     products: {
@@ -1188,30 +968,12 @@ const translations = {
       title: "Nous traitons réellement une très grande diversité de demandes produits",
       text: "Électronique, maison, mobilier, électroménager, équipements, produits spécialisés, achats en détail, commandes en gros ou recherches plus spécifiques : notre positionnement est de pouvoir répondre à pratiquement tout besoin sérieux et formulé clairement.",
       subtext: "Certaines catégories peuvent naturellement être soumises à des conditions particulières de transport, de douane ou de réglementation selon le pays de destination. Dans ce cas, la demande est structurée en fonction de la faisabilité applicable.",
-      items: [
-        "Électronique et accessoires",
-        "Maison, mobilier et literie",
-        "Électroménager",
-        "Équipements professionnels",
-        "Produits sur demande",
-        "Marchandises grand public ou spécialisées",
-        "Lots, palettes et volumes commerciaux",
-        "Véhicules et produits spécifiques selon faisabilité réglementaire",
-      ],
+      items: ["Électronique et accessoires", "Maison, mobilier et literie", "Électroménager", "Équipements professionnels", "Produits sur demande", "Marchandises grand public ou spécialisées", "Lots, palettes et volumes commerciaux", "Véhicules et produits spécifiques selon faisabilité réglementaire"],
       sideTitle: "Une approche plus crédible et plus rassurante",
       sidePoints: [
-        {
-          title: "Réseau de fournisseurs partenaires",
-          text: "Nous travaillons avec des partenaires de sourcing et d’approvisionnement pour identifier des solutions pertinentes selon la demande formulée.",
-        },
-        {
-          title: "Gestion structurée des demandes",
-          text: "Chaque besoin est étudié selon le type de produit, le volume, la destination et les contraintes logistiques ou réglementaires éventuelles.",
-        },
-        {
-          title: "Intervention internationale",
-          text: "Nous accompagnons des demandes destinées à l’Europe, à l’Afrique et à l’Amérique, avec une logique orientée solution et faisabilité.",
-        },
+        { title: "Réseau de fournisseurs partenaires", text: "Nous travaillons avec des partenaires de sourcing et d’approvisionnement pour identifier des solutions pertinentes selon la demande formulée." },
+        { title: "Gestion structurée des demandes", text: "Chaque besoin est étudié selon le type de produit, le volume, la destination et les contraintes logistiques ou réglementaires éventuelles." },
+        { title: "Intervention internationale", text: "Nous accompagnons des demandes destinées à l’Europe, à l’Afrique et à l’Amérique, avec une logique orientée solution et faisabilité." },
       ],
     },
     examples: {
@@ -1221,22 +983,10 @@ const translations = {
       cardTitle: "Un modèle de sourcing premium conçu pour des besoins produits très larges.",
       cardText: "L’objectif est simple : aider les clients à acheter plus vite, avec moins de friction et avec un parcours plus clair depuis la Chine.",
       cards: [
-        {
-          title: "Électronique grand public",
-          text: "Téléphones, accessoires, objets connectés, audio, éclairage, petits appareils électroniques et produits associés.",
-        },
-        {
-          title: "Maison & mobilier",
-          text: "Lits, matelas, tables, chaises, rangements, décoration et autres produits liés à l’aménagement intérieur.",
-        },
-        {
-          title: "Électroménager & équipements",
-          text: "Appareils de cuisine, matériel d’entretien, équipements domestiques et certains produits à usage professionnel.",
-        },
-        {
-          title: "Commandes business sur mesure",
-          text: "Lots, commandes récurrentes, besoins spécifiques et recherches produits plus ciblées selon la faisabilité.",
-        },
+        { title: "Électronique grand public", text: "Téléphones, accessoires, objets connectés, audio, éclairage, petits appareils électroniques et produits associés." },
+        { title: "Maison & mobilier", text: "Lits, matelas, tables, chaises, rangements, décoration et autres produits liés à l’aménagement intérieur." },
+        { title: "Électroménager & équipements", text: "Appareils de cuisine, matériel d’entretien, équipements domestiques et certains produits à usage professionnel." },
+        { title: "Commandes business sur mesure", text: "Lots, commandes récurrentes, besoins spécifiques et recherches produits plus ciblées selon la faisabilité." },
       ],
     },
     trust: {
@@ -1256,26 +1006,10 @@ const translations = {
       eyebrow: "Process",
       title: "Un parcours simple, professionnel et lisible",
       steps: [
-        {
-          step: "01",
-          title: "Vous exprimez votre besoin",
-          text: "Produit recherché, quantité, pays de destination, niveau de gamme et budget cible.",
-        },
-        {
-          step: "02",
-          title: "Nous consultons notre réseau",
-          text: "Depuis la Chine, nous activons nos partenaires pour trouver l’offre la plus cohérente en prix, disponibilité et conditions d’expédition.",
-        },
-        {
-          step: "03",
-          title: "Nous structurons la solution",
-          text: "Nous organisons la commande, les modalités de livraison et les informations utiles avant validation finale.",
-        },
-        {
-          step: "04",
-          title: "Nous faisons livrer",
-          text: "Votre commande est acheminée vers l’adresse souhaitée selon les conditions applicables au produit et au pays de destination.",
-        },
+        { step: "01", title: "Vous exprimez votre besoin", text: "Produit recherché, quantité, pays de destination, niveau de gamme et budget cible." },
+        { step: "02", title: "Nous consultons notre réseau", text: "Depuis la Chine, nous activons nos partenaires pour trouver l’offre la plus cohérente en prix, disponibilité et conditions d’expédition." },
+        { step: "03", title: "Nous structurons la solution", text: "Nous organisons la commande, les modalités de livraison et les informations utiles avant validation finale." },
+        { step: "04", title: "Nous faisons livrer", text: "Votre commande est acheminée vers l’adresse souhaitée selon les conditions applicables au produit et au pays de destination." },
       ],
     },
     commitment: {
@@ -1283,27 +1017,14 @@ const translations = {
       title: "Vous formulez le besoin.",
       highlight: "Nous structurons une réponse d’approvisionnement cohérente.",
       text: "Nous intervenons pour rechercher, coordonner et faire acheminer des produits sourcés en Chine avec une approche commerciale plus claire, plus premium et adaptée à votre demande.",
-      points: [
-        "Recherche produit selon votre cahier des charges",
-        "Capacité à répondre à des besoins larges et variés",
-        "Commande en détail, en lot ou en gros",
-        "Livraison vers l’adresse souhaitée selon faisabilité logistique",
-      ],
+      points: ["Recherche produit selon votre cahier des charges", "Capacité à répondre à des besoins larges et variés", "Commande en détail, en lot ou en gros", "Livraison vers l’adresse souhaitée selon faisabilité logistique"],
     },
     contact: {
       eyebrow: "Contact",
       title: "Décrivez votre besoin et nous étudierons la solution la plus adaptée",
       text: "Indiquez-nous le produit recherché, le volume, le pays de destination et toute information utile. Nous pourrons ensuite cadrer votre demande de manière plus précise.",
-      labels: {
-        destinations: "Destinations :",
-        clients: "Clients :",
-        scope: "Périmètre :",
-      },
-      values: {
-        destinations: "Europe, Afrique, Amérique",
-        clients: "entreprises, revendeurs, particuliers",
-        scope: "achats en détail, en lot, en gros et recherches produits spécifiques",
-      },
+      labels: { destinations: "Destinations :", clients: "Clients :", scope: "Périmètre :" },
+      values: { destinations: "Europe, Afrique, Amérique", clients: "entreprises, revendeurs, particuliers", scope: "achats en détail, en lot, en gros et recherches produits spécifiques" },
       noticeTitle: "Information importante",
       noticeText: "Certaines catégories de produits, certains flux d’importation et certains pays peuvent nécessiter des vérifications complémentaires en matière de conformité, de transport, de douane ou d’autorisation. Toute demande est donc étudiée selon sa faisabilité réelle.",
       form: {
@@ -1321,26 +1042,11 @@ const translations = {
     footer: {
       description: "Société orientée sourcing, approvisionnement et coordination d’achats depuis la Chine, pour des clients professionnels et particuliers à l’international.",
       activities: "Activités",
-      activityItems: [
-        "Sourcing produits",
-        "Approvisionnement via partenaires",
-        "Achats en détail, lot ou gros",
-        "Livraison internationale",
-      ],
+      activityItems: ["Sourcing produits", "Approvisionnement via partenaires", "Achats en détail, lot ou gros", "Livraison internationale"],
       regions: "Zones desservies",
-      regionItems: [
-        "Europe",
-        "Afrique",
-        "Amérique",
-        "Étude au cas par cas selon la destination",
-      ],
+      regionItems: ["Europe", "Afrique", "Amérique", "Étude au cas par cas selon la destination"],
       info: "Informations corporate",
-      infoItems: [
-        "Approche de sourcing professionnelle",
-        "Réseau de fournisseurs partenaires",
-        "Couverture internationale",
-        "Contact commercial",
-      ],
+      infoItems: ["Approche de sourcing professionnelle", "Réseau de fournisseurs partenaires", "Couverture internationale", "Contact commercial"],
       rights: "Tous droits réservés.",
       bottomLine: "Importation depuis la Chine • Sourcing • Approvisionnement • Livraison internationale",
     },

@@ -16,7 +16,66 @@ import { useState } from "react";
 
 export default function AltioraImportSite() {
   const [lang, setLang] = useState("en");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formStatus, setFormStatus] = useState("");
+
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPydLYxEHO2fIOR6B9Tr4b6e_CzDRGYQc8aS0n_qLTWFLuxnjw0DHBTQzgep3BfjY/exec";
+
   const t = translations[lang];
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFormStatus("");
+
+    const form = e.currentTarget;
+
+    const payload = {
+      fullName: form.fullName.value,
+      company: form.company.value,
+      email: form.email.value,
+      country: form.country.value,
+      product: form.product.value,
+      quantity: form.quantity.value,
+      budget: form.budget.value,
+      message: form.message.value,
+    };
+
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        form.reset();
+        setFormStatus(
+          lang === "en"
+            ? "Your request has been sent successfully."
+            : "Votre demande a bien été envoyée."
+        );
+      } else {
+        setFormStatus(
+          lang === "en"
+            ? "An error occurred. Please try again."
+            : "Une erreur est survenue. Merci de réessayer."
+        );
+      }
+    } catch (error) {
+      setFormStatus(
+        lang === "en"
+          ? "An error occurred. Please try again."
+          : "Une erreur est survenue. Merci de réessayer."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   const services = [
     {
@@ -477,49 +536,88 @@ export default function AltioraImportSite() {
             {...fadeUp}
             className="rounded-[34px] border border-[#e8dcc0] bg-white p-8 shadow-[0_18px_50px_rgba(17,37,79,0.07)]"
           >
-            <form className="grid gap-5">
-              <div className="grid gap-5 md:grid-cols-2">
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.name}
-                />
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.company}
-                />
-              </div>
-              <div className="grid gap-5 md:grid-cols-2">
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.email}
-                />
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.country}
-                />
-              </div>
-              <input
-                className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                placeholder={t.contact.form.product}
-              />
-              <div className="grid gap-5 md:grid-cols-2">
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.quantity}
-                />
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.budget}
-                />
-              </div>
-              <textarea
-                className="min-h-[160px] rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                placeholder={t.contact.form.message}
-              />
-              <button className="rounded-full bg-[#11254f] px-6 py-4 text-sm font-medium text-white shadow-[0_14px_36px_rgba(17,37,79,0.16)] transition hover:-translate-y-0.5">
-                {t.contact.form.send}
-              </button>
-            </form>
+            <form className="grid gap-5" onSubmit={handleSubmit}>
+  <div className="grid gap-5 md:grid-cols-2">
+    <input
+      type="text"
+      name="fullName"
+      required
+      className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+      placeholder={t.contact.form.name}
+    />
+    <input
+      type="text"
+      name="company"
+      className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+      placeholder={t.contact.form.company}
+    />
+  </div>
+
+  <div className="grid gap-5 md:grid-cols-2">
+    <input
+      type="email"
+      name="email"
+      required
+      className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+      placeholder={t.contact.form.email}
+    />
+    <input
+      type="text"
+      name="country"
+      required
+      className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+      placeholder={t.contact.form.country}
+    />
+  </div>
+
+  <input
+    type="text"
+    name="product"
+    required
+    className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+    placeholder={t.contact.form.product}
+  />
+
+  <div className="grid gap-5 md:grid-cols-2">
+    <input
+      type="text"
+      name="quantity"
+      className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+      placeholder={t.contact.form.quantity}
+    />
+    <input
+      type="text"
+      name="budget"
+      className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+      placeholder={t.contact.form.budget}
+    />
+  </div>
+
+  <textarea
+    name="message"
+    required
+    className="min-h-[160px] rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+    placeholder={t.contact.form.message}
+  />
+
+  <button
+    type="submit"
+    disabled={isSubmitting}
+    className="rounded-full bg-[#11254f] px-6 py-4 text-sm font-medium text-white shadow-[0_14px_36px_rgba(17,37,79,0.16)] transition hover:-translate-y-0.5 disabled:opacity-60"
+  >
+    {isSubmitting
+      ? lang === "en"
+        ? "Sending..."
+        : "Envoi..."
+      : t.contact.form.send}
+  </button>
+
+  {formStatus && (
+    <p className="text-sm text-[#11254f]">
+      {formStatus}
+    </p>
+  )}
+</form>
           </motion.div>
         </div>
       </section>

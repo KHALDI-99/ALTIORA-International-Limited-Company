@@ -15,8 +15,143 @@ import {
 import { useState } from "react";
 
 export default function AltioraImportSite() {
-  const [lang, setLang] = useState("en");
-  const t = translations[lang];
+const [lang, setLang] = useState("en");
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [formStatus, setFormStatus] = useState("");
+const [errors, setErrors] = useState({});
+
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xojkkdan";
+
+const t = translations[lang];
+
+  function validateForm(formData) {
+  const newErrors = {};
+
+  const fullName = formData.get("fullName")?.trim() || "";
+  const email = formData.get("email")?.trim() || "";
+  const country = formData.get("country")?.trim() || "";
+  const product = formData.get("product")?.trim() || "";
+  const quantity = formData.get("quantity")?.trim() || "";
+  const budget = formData.get("budget")?.trim() || "";
+  const message = formData.get("message")?.trim() || "";
+
+  if (!fullName) {
+    newErrors.fullName =
+      lang === "en"
+        ? "Please enter your full name."
+        : "Merci d’indiquer votre nom complet.";
+  }
+
+  if (!email) {
+    newErrors.email =
+      lang === "en"
+        ? "Please enter your email address."
+        : "Merci d’indiquer votre adresse email.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    newErrors.email =
+      lang === "en"
+        ? "Please enter a valid email address."
+        : "Merci d’indiquer une adresse email valide.";
+  }
+
+  if (!country) {
+    newErrors.country =
+      lang === "en"
+        ? "Please enter the delivery country."
+        : "Merci d’indiquer le pays de livraison.";
+  }
+
+  if (!product) {
+    newErrors.product =
+      lang === "en"
+        ? "Please enter the requested product."
+        : "Merci d’indiquer le produit recherché.";
+  }
+
+  if (!quantity) {
+    newErrors.quantity =
+      lang === "en"
+        ? "Please enter a quantity."
+        : "Merci d’indiquer une quantité.";
+  } else if (!/^\d+$/.test(quantity)) {
+    newErrors.quantity =
+      lang === "en"
+        ? "Quantity must be a whole number, for example: 10"
+        : "La quantité doit être un nombre entier, par exemple : 10";
+  }
+
+  if (budget && !/^\d+([.,]\d+)?$/.test(budget)) {
+    newErrors.budget =
+      lang === "en"
+        ? "Budget must be a number, for example: 500 or 500.00"
+        : "Le budget doit être un nombre, par exemple : 500 ou 500.00";
+  }
+
+  if (!message) {
+    newErrors.message =
+      lang === "en"
+        ? "Please describe your request."
+        : "Merci de décrire votre besoin.";
+  } else if (message.length < 10) {
+    newErrors.message =
+      lang === "en"
+        ? "Please provide a more detailed message."
+        : "Merci de donner un message un peu plus détaillé.";
+  }
+
+  return newErrors;
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  const form = e.currentTarget;
+  const formData = new FormData(form);
+
+  const validationErrors = validateForm(formData);
+  setErrors(validationErrors);
+  setFormStatus("");
+
+  if (Object.keys(validationErrors).length > 0) {
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const response = await fetch(FORMSPREE_ENDPOINT, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (response.ok) {
+      form.reset();
+      setErrors({});
+      setFormStatus(
+        lang === "en"
+          ? "Your request has been sent successfully. We will contact you soon."
+          : "Votre demande a bien été envoyée. Nous allons vous recontacter rapidement."
+      );
+    } else {
+      setFormStatus(
+        lang === "en"
+          ? "An error occurred while sending the form."
+          : "Une erreur est survenue lors de l’envoi du formulaire."
+      );
+    }
+  } catch (error) {
+    setFormStatus(
+      lang === "en"
+        ? "An error occurred while sending the form."
+        : "Une erreur est survenue lors de l’envoi du formulaire."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+}
 
   const services = [
     {
@@ -98,6 +233,7 @@ export default function AltioraImportSite() {
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <button
+              type="button"
               onClick={() => setLang(lang === "en" ? "fr" : "en")}
               className="rounded-full border border-[#d6c39a] bg-white px-3 py-2 text-[10px] font-semibold tracking-[0.18em] text-[#11254f] shadow-sm transition hover:border-[#b9862d] sm:px-4 sm:text-[11px]"
             >
@@ -477,49 +613,146 @@ export default function AltioraImportSite() {
             {...fadeUp}
             className="rounded-[34px] border border-[#e8dcc0] bg-white p-8 shadow-[0_18px_50px_rgba(17,37,79,0.07)]"
           >
-            <form className="grid gap-5">
-              <div className="grid gap-5 md:grid-cols-2">
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.name}
-                />
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.company}
-                />
-              </div>
-              <div className="grid gap-5 md:grid-cols-2">
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.email}
-                />
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.country}
-                />
-              </div>
-              <input
-                className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                placeholder={t.contact.form.product}
-              />
-              <div className="grid gap-5 md:grid-cols-2">
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.quantity}
-                />
-                <input
-                  className="rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                  placeholder={t.contact.form.budget}
-                />
-              </div>
-              <textarea
-                className="min-h-[160px] rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
-                placeholder={t.contact.form.message}
-              />
-              <button className="rounded-full bg-[#11254f] px-6 py-4 text-sm font-medium text-white shadow-[0_14px_36px_rgba(17,37,79,0.16)] transition hover:-translate-y-0.5">
-                {t.contact.form.send}
-              </button>
-            </form>
+            <form className="grid gap-5" onSubmit={handleSubmit} noValidate>
+  <div className="grid gap-5 md:grid-cols-2">
+    <div>
+      <input
+        type="text"
+        name="fullName"
+        className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
+          errors.fullName ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
+        }`}
+        placeholder={t.contact.form.name}
+      />
+      {errors.fullName && (
+        <p className="mt-2 text-sm text-red-600">{errors.fullName}</p>
+      )}
+    </div>
+
+    <div>
+      <input
+        type="text"
+        name="company"
+        className="w-full rounded-2xl border border-[#d8dfe9] px-4 py-4 text-[#11254f] outline-none transition focus:border-[#b9862d]"
+        placeholder={t.contact.form.company}
+      />
+    </div>
+  </div>
+
+  <div className="grid gap-5 md:grid-cols-2">
+    <div>
+      <input
+        type="email"
+        name="email"
+        className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
+          errors.email ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
+        }`}
+        placeholder={t.contact.form.email}
+      />
+      {errors.email && (
+        <p className="mt-2 text-sm text-red-600">{errors.email}</p>
+      )}
+    </div>
+
+    <div>
+      <input
+        type="text"
+        name="country"
+        className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
+          errors.country ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
+        }`}
+        placeholder={t.contact.form.country}
+      />
+      {errors.country && (
+        <p className="mt-2 text-sm text-red-600">{errors.country}</p>
+      )}
+    </div>
+  </div>
+
+  <div>
+    <input
+      type="text"
+      name="product"
+      className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
+        errors.product ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
+      }`}
+      placeholder={t.contact.form.product}
+    />
+    {errors.product && (
+      <p className="mt-2 text-sm text-red-600">{errors.product}</p>
+    )}
+  </div>
+
+  <div className="grid gap-5 md:grid-cols-2">
+    <div>
+      <input
+        type="text"
+        name="quantity"
+        inputMode="numeric"
+        className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
+          errors.quantity ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
+        }`}
+        placeholder={t.contact.form.quantity}
+      />
+      {errors.quantity && (
+        <p className="mt-2 text-sm text-red-600">{errors.quantity}</p>
+      )}
+    </div>
+
+    <div>
+      <input
+        type="text"
+        name="budget"
+        inputMode="decimal"
+        className={`w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
+          errors.budget ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
+        }`}
+        placeholder={t.contact.form.budget}
+      />
+      {errors.budget && (
+        <p className="mt-2 text-sm text-red-600">{errors.budget}</p>
+      )}
+    </div>
+  </div>
+
+  <div>
+    <textarea
+      name="message"
+      className={`min-h-[160px] w-full rounded-2xl border px-4 py-4 text-[#11254f] outline-none transition ${
+        errors.message ? "border-red-500" : "border-[#d8dfe9] focus:border-[#b9862d]"
+      }`}
+      placeholder={t.contact.form.message}
+    />
+    {errors.message && (
+      <p className="mt-2 text-sm text-red-600">{errors.message}</p>
+    )}
+  </div>
+
+  <button
+    type="submit"
+    disabled={isSubmitting}
+    className="rounded-full bg-[#11254f] px-6 py-4 text-sm font-medium text-white shadow-[0_14px_36px_rgba(17,37,79,0.16)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    {isSubmitting
+      ? lang === "en"
+        ? "Sending..."
+        : "Envoi..."
+      : t.contact.form.send}
+  </button>
+
+  {formStatus && (
+    <p
+      className={`rounded-xl px-4 py-3 text-sm ${
+        formStatus.toLowerCase().includes("error") ||
+        formStatus.toLowerCase().includes("erreur")
+          ? "bg-red-50 text-red-600"
+          : "bg-green-50 text-green-700"
+      }`}
+    >
+      {formStatus}
+    </p>
+  )}
+</form>
           </motion.div>
         </div>
       </section>
